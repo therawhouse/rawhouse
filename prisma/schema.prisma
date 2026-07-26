@@ -1,0 +1,356 @@
+// ============================================================================
+// THE RAW HOUSE - Database Schema Definition (Prisma ORM for Supabase PostgreSQL)
+// Architectural Documentation:
+// This schema handles multi-tier e-commerce relational structures including:
+// 1. User & Admin Authentication and Role Management
+// 2. Product Catalog, Hierarchical Categories, and Color/Size Variant Matrix
+// 3. Dynamic Real-time Inventory Management
+// 4. Shopping Cart & Persistent Customer Wishlist
+// 5. Order Management, Address Book, and Payment Tracking
+// 6. Promotional Discount Coupons & Customer Ratings/Reviews
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Enums
+// ----------------------------------------------------------------------------
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+// ----------------------------------------------------------------------------
+// 1. Users & Authentication
+// ----------------------------------------------------------------------------
+
+/// Standard Customer profile linked to Supabase Auth & custom JWT sessions
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  passwordHash  String?     // Optional if signed up via Google OAuth
+  firstName     String?
+  lastName      String?
+  phone         String?
+  avatarUrl     String?     // Supabase storage image URL
+  role          Role        @default(CUSTOMER)
+  isVerified    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  addresses     Address[]
+  orders        Order[]
+  reviews       Review[]
+  cart          Cart?
+  wishlist      Wishlist?
+
+  @@map("users")
+}
+
+/// Elevated Privilege System Administrators
+model AdminUser {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  passwordHash String
+  permissions String[] // e.g. ["MANAGE_PRODUCTS", "MANAGE_ORDERS", "MANAGE_COUPONS"]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ----------------------------------------------------------------------------
+// 2. Categories & Product Catalog
+// ----------------------------------------------------------------------------
+
+/// Product Categories supporting multi-level nested parent/child hierarchies
+model Category {
+  id          String     @id @default(uuid())
+  name        String     // e.g. "Outerwear", "Tailored Suits", "Footwear"
+  slug        String     @unique // e.g. "outerwear"
+  description String?
+  imageUrl    String?    // Category banner image stored in Supabase
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[] @relation("CategoryHierarchy")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  products    Product[]
+
+  @@map("categories")
+}
+
+/// Primary Product entity representing a luxury garment or accessory item
+model Product {
+  id          String   @id @default(uuid())
+  title       String   // e.g. "Raw Silk Embroidered Bomber Jacket"
+  slug        String   @unique
+  description String   // Detailed product story and luxury editorial description
+  details     String?  // Accordion text: Materials, Care instructions, Fitting guide
+  price       Float    // Base price in INR (₹)
+  salePrice   Float?   // Optional promotional discounted price
+  gender      String   // "Men", "Women", "Unisex"
+  isFeatured  Boolean  @default(false)
+  isBestSeller Boolean @default(false)
+  isNewArrival Boolean @default(true)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  categoryId  String
+  category    Category       @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  sizes       ProductSize[]
+  colors      ProductColor[]
+  inventories Inventory[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+  wishlistItems WishlistItem[]
+  reviews     Review[]
+
+  @@map("products")
+}
+
+/// Image gallery urls stored in Supabase Storage with order priority
+model ProductImage {
+  id        String   @id @default(uuid())
+  url       String   // Supabase Storage URL
+  altText   String?
+  isPrimary Boolean  @default(false)
+  sortOrder Int      @default(0)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+/// Size variant options (e.g. S, M, L, XL, EU 42, EU 44)
+model ProductSize {
+  id        String   @id @default(uuid())
+  sizeName  String   // e.g., "M" or "EU 42"
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  inventories Inventory[]
+
+  @@map("product_sizes")
+}
+
+/// Color variant options with hex values (e.g. Espresso `#16100e`, Raw Gold `#c69255`)
+model ProductColor {
+  id        String   @id @default(uuid())
+  colorName String   // e.g. "Espresso Brown"
+  hexCode   String   // e.g. "#16100e"
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  inventories Inventory[]
+
+  @@map("product_colors")
+}
+
+/// Exact stock tracking per SKU combination (Product + Size + Color)
+model Inventory {
+  id        String       @id @default(uuid())
+  sku       String       @unique // e.g. "RWH-BOMBER-ESP-M"
+  quantity  Int          @default(0)
+  productId String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sizeId    String?
+  size      ProductSize?  @relation(fields: [sizeId], references: [id])
+  colorId   String?
+  color     ProductColor? @relation(fields: [colorId], references: [id])
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("inventory")
+}
+
+// ----------------------------------------------------------------------------
+// 3. Cart & Wishlist
+// ----------------------------------------------------------------------------
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String?    @unique // Null for guest session cart
+  sessionId String?    @unique // Session token for unauthenticated visitors
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  size      String?  // Selected size label
+  color     String?  // Selected color label
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@map("cart_items")
+}
+
+model Wishlist {
+  id        String         @id @default(uuid())
+  userId    String         @unique
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+
+  @@map("wishlists")
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@map("wishlist_items")
+}
+
+// ----------------------------------------------------------------------------
+// 4. Addresses & Orders
+// ----------------------------------------------------------------------------
+
+model Address {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  phone        String
+  streetAddress String
+  apartment    String?
+  city         String
+  state        String
+  postalCode   String
+  country      String   @default("India")
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  orders       Order[]
+
+  @@map("addresses")
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  orderNumber     String        @unique // e.g. "RWH-2026-89421"
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  addressId       String
+  shippingAddress Address       @relation(fields: [addressId], references: [id])
+  subtotal        Float
+  discountAmount  Float         @default(0.0)
+  taxAmount       Float         @default(0.0)
+  shippingFee     Float         @default(0.0)
+  totalAmount     Float
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  razorpayOrderId String?       // Razorpay API Order ID (e.g. order_K9xJ82kLa1S982)
+  razorpayPaymentId String?     // Razorpay Payment ID after successful transaction
+  razorpaySignature String?     // Verified HMAC signature
+  trackingNumber  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items           OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  price     Float    // Price snapshot at purchase time
+  quantity  Int
+  size      String?
+  color     String?
+  createdAt DateTime @default(now())
+
+  @@map("order_items")
+}
+
+// ----------------------------------------------------------------------------
+// 5. Coupons & Reviews
+// ----------------------------------------------------------------------------
+
+model Coupon {
+  id            String       @id @default(uuid())
+  code          String       @unique // e.g., "LUXURY20"
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Float        // 20% or ₹500 off
+  minOrderValue Float?       // Minimum order threshold
+  maxDiscount   Float?       // Cap for percentage discounts
+  expiresAt     DateTime?
+  usageLimit    Int?
+  timesUsed     Int          @default(0)
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+
+  @@map("coupons")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // 1 to 5 stars
+  title     String?
+  comment   String
+  images    String[] // Supabase customer upload review images
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}

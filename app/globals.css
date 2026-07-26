@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --bg-raw: #140e0c;
+  --gold-raw: #c69255;
+  --ivory-raw: #f9f6f0;
+}
+
+body {
+  background-color: var(--bg-raw);
+  color: var(--ivory-raw);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Luxury Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #140e0c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2e211d;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c69255;
+}
+
+/* Gucci-inspired Typography & Text Utilities */
+.font-serif-luxury {
+  font-family: var(--font-serif);
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #e5b878 0%, #c69255 50%, #9e6f36 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism overlays */
+.glass-header {
+  background: rgba(20, 14, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card {
+  background: rgba(27, 18, 16, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(198, 146, 85, 0.15);
+}
+
+/* Smooth Image Hover Scaling */
+.img-zoom-container {
+  overflow: hidden;
+}
+
+.img-zoom-container img {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.img-zoom-container:hover img {
+  transform: scale(1.05);
+}

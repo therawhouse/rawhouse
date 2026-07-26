@@ -1,0 +1,47 @@
+{
+  "info": {
+    "name": "The Raw House E-Commerce API Collection",
+    "description": "Postman API requests collection for testing products, cart, Razorpay payments, and admin endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products?category=outerwear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [{ "key": "category", "value": "outerwear" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Razorpay Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountInINR\": 84500,\n  \"receiptId\": \"RWH-TEST-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/razorpay/create-order",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "razorpay", "create-order"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "The Raw House E-Commerce REST API",
+    "version": "1.0.0",
+    "description": "Production REST API specification for The Raw House luxury e-commerce platform including products, categories, Razorpay payments, Resend emails, and admin management."
+  },
+  "servers": [
+    {
+      "url": "https://rawhouse.in/api",
+      "description": "Production Server"
+    },
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Local Development Server"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Retrieve catalog products with filters",
+        "parameters": [
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "gender", "in": "query", "schema": { "type": "string" } },
+          { "name": "query", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Filtered array of luxury products" }
+        }
+      },
+      "post": {
+        "summary": "Add a new luxury product (Admin Only)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Product created successfully" }
+        }
+      }
+    },
+    "/payments/razorpay/create-order": {
+      "post": {
+        "summary": "Generate Razorpay order for checkout",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amountInINR": { "type": "number", "example": 84500 },
+                  "receiptId": { "type": "string", "example": "RWH-2026-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Razorpay order created with order_id and key" }
+        }
+      }
+    },
+    "/payments/razorpay/verify": {
+      "post": {
+        "summary": "Cryptographically verify Razorpay HMAC-SHA256 signature",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "razorpayOrderId": { "type": "string" },
+                  "razorpayPaymentId": { "type": "string" },
+                  "razorpaySignature": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Signature verified and order saved" }
+        }
+      }
+    }
+  }
+}
