@@ -172,7 +172,7 @@ export default function HomePage() {
       {/* Featured Products Showcase */}
       <FeaturedProducts
         products={SAMPLE_PRODUCTS}
-        onAddToCart={handleAddToCart}
+        onAddToCart={addToCart}
         onAddToWishlist={handleAddToWishlist}
         onQuickView={(p) => setQuickViewProduct(p)}
       />
@@ -229,7 +229,7 @@ export default function HomePage() {
         onClose={() => setIsWishlistOpen(false)}
         items={wishlistItems}
         onRemoveFromWishlist={handleRemoveFromWishlist}
-        onAddToCart={handleAddToCart}
+        onAddToCart={addToCart}
       />
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
@@ -276,7 +276,7 @@ export default function HomePage() {
 
               <button
                 onClick={() => {
-                  handleAddToCart(quickViewProduct);
+                  addToCart(quickViewProduct);
                   setQuickViewProduct(null);
                 }}
                 className="w-full bg-raw-gold hover:bg-raw-goldHover text-raw-bg font-bold py-3 uppercase tracking-[0.2em] flex items-center justify-center space-x-2"
