@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { comparePassword, hashPassword } from "@/lib/auth";
+import { sendEmail, getWelcomeEmailHtml } from "@/lib/resend";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma) as any,
@@ -37,13 +38,22 @@ const handler = NextAuth({
           }
           
           const hashedPassword = await hashPassword(credentials.password);
+          const name = credentials.name || credentials.email.split("@")[0];
+          
           const user = await prisma.user.create({
             data: {
               email: credentials.email,
-              name: credentials.name || credentials.email.split("@")[0],
+              name,
               passwordHash: hashedPassword,
               role: "CUSTOMER",
             }
+          });
+          
+          // Send Welcome Email
+          await sendEmail({
+            to: user.email!,
+            subject: "Welcome to The Raw House",
+            html: getWelcomeEmailHtml(name),
           });
           
           return user;
@@ -85,6 +95,17 @@ const handler = NextAuth({
         (session.user as any).role = token.role;
       }
       return session;
+    }
+  },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        await sendEmail({
+          to: user.email,
+          subject: "Welcome to The Raw House",
+          html: getWelcomeEmailHtml(user.name || "Client"),
+        });
+      }
     }
   }
 });
