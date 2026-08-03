@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProductCatalog } from "@/components/product/ProductCatalog";
@@ -116,7 +116,7 @@ const SAMPLE_PRODUCTS: Product[] = [
   },
 ];
 
-export default function CatalogPage() {
+function CatalogContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") || "All";
   const initialQuery = searchParams.get("query") || "";
@@ -186,5 +186,13 @@ export default function CatalogPage() {
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </div>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-raw-bg flex items-center justify-center text-raw-gold tracking-[0.2em]">LOADING CATALOG...</div>}>
+      <CatalogContent />
+    </Suspense>
   );
 }
