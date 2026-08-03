@@ -37,8 +37,9 @@ export default function CheckoutPage() {
 
   // Pre-fill email if logged in
   useEffect(() => {
-    if (session?.user?.email) {
-      setFormData((prev) => ({ ...prev, email: session.user.email! }));
+    const userEmail = session?.user?.email;
+    if (userEmail) {
+      setFormData((prev) => ({ ...prev, email: userEmail }));
     }
   }, [session]);
 
