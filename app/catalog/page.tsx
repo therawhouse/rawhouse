@@ -167,7 +167,7 @@ function CatalogContent() {
         onClose={() => setIsWishlistOpen(false)}
         items={wishlistItems}
         onRemoveFromWishlist={(id) => setWishlistItems(wishlistItems.filter((p) => p.id !== id))}
-        onAddToCart={handleAddToCart}
+        onAddToCart={addToCart}
       />
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
