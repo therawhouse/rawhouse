@@ -2,7 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Tag, BarChart3, ArrowLeft, ShieldCheck } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LayoutDashboard, Package, ShoppingCart, Tag, BarChart3, ArrowLeft, ShieldCheck, LogOut } from "lucide-react";
+import { toast } from "sonner";
 
 /**
  * ============================================================================
@@ -11,6 +13,24 @@ import { LayoutDashboard, Package, ShoppingCart, Tag, BarChart3, ArrowLeft, Shie
  */
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+      toast.success("Securely logged out.");
+      // Redirect to login and force reload to clear cache
+      window.location.href = "/admin/login";
+    } catch (error) {
+      toast.error("Error logging out.");
+    }
+  };
+
+  if (pathname === "/admin/login") {
+    return <main>{children}</main>;
+  }
+
   return (
     <div className="min-h-screen bg-raw-bg text-raw-ivory flex flex-col md:flex-row">
       {/* Sidebar Navigation */}
@@ -69,6 +89,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ShieldCheck className="w-4 h-4" />
             <span className="text-[11px] tracking-wider">Concierge Admin Role</span>
           </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition-colors text-[11px] tracking-wider w-full text-left"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Secure Log Out</span>
+          </button>
           <Link
             href="/"
             className="flex items-center space-x-2 text-raw-muted hover:text-raw-ivory transition-colors text-[11px] tracking-wider"

@@ -18,13 +18,23 @@ export function middleware(request: NextRequest) {
 
   // 2. Protect Admin Route Access
   const pathname = request.nextUrl.pathname;
-  if (pathname.startsWith("/api/admin")) {
+  
+  // Protect backend API admin routes (allow login API to pass)
+  if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/login")) {
     const authHeader = request.headers.get("authorization");
     if (!authHeader && !request.cookies.get("admin_session")) {
       return NextResponse.json(
         { success: false, error: "Unauthorized: Administrative privileges required" },
         { status: 401 }
       );
+    }
+  }
+
+  // Protect frontend Admin routes (allow login page to pass)
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+    if (!request.cookies.get("admin_session")) {
+      const loginUrl = new URL("/admin/login", request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
