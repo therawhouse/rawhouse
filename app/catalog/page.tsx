@@ -10,6 +10,7 @@ import { AuthModal } from "@/components/auth/AuthModal";
 import { Product, CartItem } from "@/types";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
+import { useCart } from "@/lib/CartContext";
 
 /**
  * ============================================================================
@@ -121,24 +122,10 @@ function CatalogContent() {
   const initialCategory = searchParams.get("category") || "All";
   const initialQuery = searchParams.get("query") || "";
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-
-  const handleAddToCart = (product: Product) => {
-    setCartItems((prev) => [
-      ...prev,
-      {
-        id: `cart-${Date.now()}`,
-        productId: product.id,
-        product,
-        quantity: 1,
-      },
-    ]);
-    setIsCartOpen(true);
-  };
 
   const handleAddToWishlist = (product: Product) => {
     setWishlistItems((prev) => [...prev, product]);
@@ -147,7 +134,7 @@ function CatalogContent() {
   return (
     <div className="min-h-screen flex flex-col bg-raw-bg text-raw-ivory">
       <Header
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
         wishlistItemCount={wishlistItems.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
@@ -159,7 +146,7 @@ function CatalogContent() {
           products={SAMPLE_PRODUCTS}
           initialCategory={initialCategory}
           initialQuery={initialQuery}
-          onAddToCart={handleAddToCart}
+          onAddToCart={addToCart}
           onAddToWishlist={handleAddToWishlist}
           onQuickView={() => {}}
         />
@@ -171,9 +158,8 @@ function CatalogContent() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
-        onUpdateQuantity={() => {}}
-        onRemoveItem={(id) => setCartItems(cartItems.filter((i) => i.id !== id))}
-        onProceedToRazorpay={() => toast.success("Razorpay Order Initiated")}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
       />
 
       <WishlistDrawer
