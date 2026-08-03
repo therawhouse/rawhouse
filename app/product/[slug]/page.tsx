@@ -10,6 +10,7 @@ import { WishlistDrawer } from "@/components/cart/WishlistDrawer";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { Product, CartItem } from "@/types";
 import { toast } from "sonner";
+import { useCart } from "@/lib/CartContext";
 
 /**
  * ============================================================================
@@ -74,35 +75,20 @@ export default function ProductDetailPage() {
 
   const product = SAMPLE_PRODUCTS.find((p) => p.slug === slug) || SAMPLE_PRODUCTS[0];
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  const handleAddToCart = (p: Product, size?: string, color?: string) => {
-    setCartItems((prev) => [
-      ...prev,
-      {
-        id: `cart-${Date.now()}`,
-        productId: p.id,
-        product: p,
-        size: size || "M",
-        color: color || "Espresso",
-        quantity: 1,
-      },
-    ]);
-    setIsCartOpen(true);
-  };
-
   const handleRazorpayCheckout = (p: Product, size?: string, color?: string) => {
-    handleAddToCart(p, size, color);
+    addToCart(p, size, color);
+    // User can just checkout from the drawer now that we have a global flow.
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-raw-bg text-raw-ivory">
       <Header
-        cartItemCount={cartItems.length}
+        cartItemCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)}
         wishlistItemCount={wishlistItems.length}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
@@ -112,7 +98,7 @@ export default function ProductDetailPage() {
       <main className="flex-1">
         <ProductDetail
           product={product}
-          onAddToCart={handleAddToCart}
+          onAddToCart={addToCart}
           onRazorpayCheckout={handleRazorpayCheckout}
           onAddToWishlist={(p) => setWishlistItems([...wishlistItems, p])}
         />
@@ -124,9 +110,8 @@ export default function ProductDetailPage() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
-        onUpdateQuantity={() => {}}
-        onRemoveItem={(id) => setCartItems(cartItems.filter((i) => i.id !== id))}
-        onProceedToRazorpay={() => toast.success("Razorpay Order Initiated")}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
       />
 
       <WishlistDrawer
@@ -134,7 +119,7 @@ export default function ProductDetailPage() {
         onClose={() => setIsWishlistOpen(false)}
         items={wishlistItems}
         onRemoveFromWishlist={(id) => setWishlistItems(wishlistItems.filter((p) => p.id !== id))}
-        onAddToCart={handleAddToCart}
+        onAddToCart={addToCart}
       />
 
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
