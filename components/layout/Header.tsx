@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, ShoppingBag, Heart, User, Menu, X, Plus } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, Menu, X, Plus, LogOut } from "lucide-react";
 import { MenuDrawer } from "./MenuDrawer";
+import { useSession, signOut } from "next-auth/react";
 
 interface HeaderProps {
   cartItemCount?: number;
@@ -24,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white text-black border-b border-gray-200 transition-colors duration-300">
@@ -56,9 +58,15 @@ export const Header: React.FC<HeaderProps> = ({
             
             {/* Account / Wishlist / Cart Icons (E-commerce Essentials) */}
             <div className="hidden lg:flex items-center space-x-4 mr-4">
-              <button onClick={onOpenAuth} className="hover:text-gray-500 transition-colors" title="Client Account">
-                <User className="w-5 h-5" />
-              </button>
+              {session ? (
+                <button onClick={() => signOut()} className="hover:text-gray-500 transition-colors flex items-center space-x-1" title="Sign Out">
+                  <LogOut className="w-5 h-5" />
+                </button>
+              ) : (
+                <button onClick={onOpenAuth} className="hover:text-gray-500 transition-colors" title="Client Account">
+                  <User className="w-5 h-5" />
+                </button>
+              )}
 
               <button onClick={onOpenWishlist} className="hover:text-gray-500 transition-colors relative" title="Wishlist">
                 <Heart className="w-5 h-5" />

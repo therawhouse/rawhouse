@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { X, Lock, Mail, User, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { signIn } from "next-auth/react";
 
 /**
  * ============================================================================
@@ -21,49 +22,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    if (mode === "login") {
-      toast.success("Welcome back to The Raw House Atelier", {
-        description: `Logged in as ${email}`,
-      });
-      if (onLoginSuccess) {
-        onLoginSuccess({
+    try {
+      if (mode === "login" || mode === "register") {
+        const res = await signIn("credentials", {
+          redirect: false,
           email,
-          name: email.split("@")[0],
-          role: email.includes("admin") ? "ADMIN" : "CUSTOMER",
+          password,
+          name: mode === "register" ? name : undefined,
+          isRegister: mode === "register" ? "true" : "false",
         });
+
+        if (res?.error) {
+          toast.error("Authentication Failed", { description: res.error });
+        } else {
+          toast.success(mode === "login" ? "Welcome back to The Raw House Atelier" : "Account Created Successfully");
+          onClose();
+          window.location.reload(); // Refresh to update session state
+        }
+      } else {
+        toast.info("Password Reset Sent", {
+          description: `Instructions sent to ${email}`,
+        });
+        setMode("login");
       }
-      onClose();
-    } else if (mode === "register") {
-      toast.success("Account Created Successfully", {
-        description: "A verification email has been dispatched via Resend.",
-      });
-      setMode("login");
-    } else {
-      toast.info("Password Reset Sent", {
-        description: `Instructions sent to ${email}`,
-      });
-      setMode("login");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleAuth = () => {
-    toast.success("Google Authentication Verified", {
-      description: "Signed in via Google OAuth.",
-    });
-    if (onLoginSuccess) {
-      onLoginSuccess({
-        email: "client@gmail.com",
-        name: "Valued Client",
-        role: "CUSTOMER",
-      });
-    }
-    onClose();
+    setIsLoading(true);
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (
@@ -184,11 +181,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
 
           <button
             type="submit"
-            className="w-full bg-raw-gold hover:bg-raw-goldHover text-raw-bg py-3.5 text-xs font-bold uppercase tracking-[0.25em] transition-all shadow-lg mt-4"
+            disabled={isLoading}
+            className="w-full bg-raw-gold hover:bg-raw-goldHover text-raw-bg py-3.5 text-xs font-bold uppercase tracking-[0.25em] transition-all shadow-lg mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {mode === "login" && "SIGN IN TO ATELIER"}
-            {mode === "register" && "CREATE ATELIER ACCOUNT"}
-            {mode === "forgot" && "SEND RECOVERY LINK"}
+            {isLoading ? "PROCESSING..." : mode === "login" ? "SIGN IN TO ATELIER" : mode === "register" ? "CREATE ATELIER ACCOUNT" : "SEND RECOVERY LINK"}
           </button>
         </form>
 

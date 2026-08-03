@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { NextAuthProvider } from "@/components/auth/NextAuthProvider";
 
 /**
  * ============================================================================
@@ -83,7 +84,9 @@ export default function RootLayout({
         <script src="https://checkout.razorpay.com/v1/checkout.js" async />
       </head>
       <body className="bg-raw-bg text-raw-ivory antialiased min-h-screen flex flex-col selection:bg-raw-gold selection:text-raw-bg">
-        {children}
+        <NextAuthProvider>
+          {children}
+        </NextAuthProvider>
         <Toaster
           position="bottom-right"
           toastOptions={{
