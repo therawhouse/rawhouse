@@ -55,6 +55,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { CartProvider } from "@/lib/CartContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -85,7 +87,9 @@ export default function RootLayout({
       </head>
       <body className="bg-raw-bg text-raw-ivory antialiased min-h-screen flex flex-col selection:bg-raw-gold selection:text-raw-bg">
         <NextAuthProvider>
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </NextAuthProvider>
         <Toaster
           position="bottom-right"

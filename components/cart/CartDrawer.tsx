@@ -18,7 +18,6 @@ interface CartDrawerProps {
   items: CartItem[];
   onUpdateQuantity: (itemId: string, newQty: number) => void;
   onRemoveItem: (itemId: string) => void;
-  onProceedToRazorpay: (couponCode?: string, discountAmount?: number) => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -27,7 +26,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   items,
   onUpdateQuantity,
   onRemoveItem,
-  onProceedToRazorpay,
 }) => {
   const [couponCode, setCouponCode] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -230,11 +228,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </div>
 
               <button
-                onClick={() => onProceedToRazorpay(couponCode, discountAmount)}
+                onClick={() => {
+                  onClose();
+                  window.location.href = "/checkout";
+                }}
                 className="w-full bg-raw-gold hover:bg-raw-goldHover text-raw-bg py-4 px-6 text-xs font-bold uppercase tracking-[0.25em] flex items-center justify-center space-x-3 transition-all shadow-xl"
               >
-                <CreditCard className="w-4 h-4" />
-                <span>CHECKOUT WITH RAZORPAY</span>
+                <span>Check out</span>
               </button>
             </div>
           )}

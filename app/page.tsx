@@ -13,6 +13,7 @@ import { Product, CartItem } from "@/types";
 import { toast } from "sonner";
 import Image from "next/image";
 import { X, ShoppingBag, CreditCard, ShieldCheck } from "lucide-react";
+import { useCart } from "@/lib/CartContext";
 
 /**
  * ============================================================================
@@ -131,47 +132,11 @@ const SAMPLE_PRODUCTS: Product[] = [
 ];
 
 export default function HomePage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-
-  // Cart Operations
-  const handleAddToCart = (product: Product, size?: string, color?: string) => {
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id && item.size === size);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === existing.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [
-        ...prev,
-        {
-          id: `cart-${Date.now()}`,
-          productId: product.id,
-          product,
-          size: size || product.sizes?.[0]?.sizeName || "M",
-          color: color || product.colors?.[0]?.colorName || "Espresso",
-          quantity: 1,
-        },
-      ];
-    });
-    setIsCartOpen(true);
-  };
-
-  const handleUpdateQuantity = (itemId: string, newQty: number) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity: newQty } : item))
-    );
-  };
-
-  const handleRemoveCartItem = (itemId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-    toast.info("Item removed from Shopping Bag");
-  };
 
   // Wishlist Operations
   const handleAddToWishlist = (product: Product) => {
@@ -183,105 +148,6 @@ export default function HomePage() {
 
   const handleRemoveFromWishlist = (productId: string) => {
     setWishlistItems((prev) => prev.filter((p) => p.id !== productId));
-  };
-
-  // Razorpay Payment Handler Logic
-  const handleRazorpayCheckout = async (couponCode?: string, discountAmount: number = 0) => {
-    const subtotal = cartItems.reduce(
-      (acc, item) => acc + (item.product.salePrice || item.product.price) * item.quantity,
-      0
-    );
-    const finalAmount = Math.max(0, subtotal - discountAmount);
-
-    if (finalAmount <= 0) {
-      toast.error("Shopping bag is empty");
-      return;
-    }
-
-    try {
-      toast.info("Initializing Razorpay Secure Gateway...", {
-        description: "Preparing Order Signature...",
-      });
-
-      // Call Backend API to Create Razorpay Order
-      const res = await fetch("/api/payments/razorpay/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amountInINR: finalAmount,
-          receiptId: `RWH-${Date.now()}`,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error(data.error || "Order creation failed");
-      }
-
-      // Configure Razorpay SDK Popup Options
-      const options = {
-        key: data.data.key,
-        amount: data.data.amount,
-        currency: data.data.currency,
-        name: "The Raw House Atelier",
-        description: "Bespoke Apparel Purchase",
-        image: "https://rawhouse.in/logo.png",
-        order_id: data.data.orderId,
-        handler: async function (response: any) {
-          toast.loading("Verifying HMAC Payment Signature...");
-
-          // Verify Signature with Backend API
-          const verifyRes = await fetch("/api/payments/razorpay/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-              customerEmail: "client@rawhouse.in",
-              customerName: "Valued Client",
-              totalAmount: finalAmount,
-            }),
-          });
-
-          const verifyData = await verifyRes.json();
-
-          if (verifyData.success) {
-            toast.success("Payment Successfully Verified!", {
-              description: `Transaction ID: ${response.razorpay_payment_id}. Confirmation email dispatched.`,
-            });
-            setCartItems([]);
-            setIsCartOpen(false);
-          } else {
-            toast.error("Signature Verification Failed");
-          }
-        },
-        prefill: {
-          name: "Valued Client",
-          email: "client@rawhouse.in",
-          contact: "+919876543210",
-        },
-        theme: {
-          color: "#c69255", // Signature Gold Accent
-        },
-      };
-
-      // Open Razorpay SDK Payment Modal if available, or simulate success
-      if (typeof window !== "undefined" && (window as any).Razorpay) {
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-      } else {
-        // Fallback simulation for local dev
-        toast.success("Razorpay Payment Simulated (Development Mode)", {
-          description: `Order Amount: ₹${finalAmount.toLocaleString("en-IN")}. Sent Resend confirmation email.`,
-        });
-        setCartItems([]);
-        setIsCartOpen(false);
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Payment Gateway Error");
-    }
   };
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -354,9 +220,8 @@ export default function HomePage() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveCartItem}
-        onProceedToRazorpay={handleRazorpayCheckout}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
       />
 
       <WishlistDrawer
