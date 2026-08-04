@@ -299,6 +299,9 @@ export default function CheckoutPage() {
                     value={formData.pincode}
                     onChange={handleInputChange}
                     placeholder="PIN code"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    title="Please enter exactly 6 digits"
                     className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-raw-gold/50 focus:border-raw-gold transition-colors text-sm"
                     required
                   />
@@ -310,6 +313,9 @@ export default function CheckoutPage() {
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder="Phone"
+                  pattern="[0-9]{10}"
+                  maxLength={10}
+                  title="Please enter exactly 10 digits"
                   className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-raw-gold/50 focus:border-raw-gold transition-colors text-sm"
                   required
                 />
