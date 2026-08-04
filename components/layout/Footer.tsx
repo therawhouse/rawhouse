@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link href="/returns" className="hover:text-raw-gold transition-colors">
+              <Link href="/return-policy" className="hover:text-raw-gold transition-colors">
                 Complimentary Returns
               </Link>
             </li>
@@ -145,10 +145,10 @@ export const Footer: React.FC = () => {
           &copy; {new Date().getFullYear()} THE RAW HOUSE. All rights reserved. Registered domain: rawhouse.in
         </div>
         <div className="flex space-x-6">
-          <Link href="/privacy" className="hover:text-raw-gold transition-colors">
+          <Link href="/privacy-policy" className="hover:text-raw-gold transition-colors">
             Privacy Policy
           </Link>
-          <Link href="/terms" className="hover:text-raw-gold transition-colors">
+          <Link href="/terms-conditions" className="hover:text-raw-gold transition-colors">
             Terms of Sale
           </Link>
           <Link href="/cookies" className="hover:text-raw-gold transition-colors">

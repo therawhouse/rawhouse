@@ -82,8 +82,12 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amountInINR: total,
-          receiptId: `RWH-${Date.now()}`,
+          cartItems: cartItems.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color
+          })),
         }),
       });
 
@@ -115,7 +119,14 @@ export default function CheckoutPage() {
               razorpaySignature: response.razorpay_signature,
               customerEmail: formData.email,
               customerName: `${formData.firstName} ${formData.lastName}`.trim(),
-              totalAmount: total,
+              addressDetails: formData,
+              cartItems: cartItems.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                size: item.size,
+                color: item.color,
+                price: item.product.price
+              }))
             }),
           });
 
@@ -126,8 +137,7 @@ export default function CheckoutPage() {
               description: `Transaction ID: ${response.razorpay_payment_id}`,
             });
             clearCart();
-            // In a real app, redirect to an Order Confirmation page
-            router.push("/"); 
+            router.push(`/order-confirmation/${verifyData.data.orderId}`);
           } else {
             toast.error("Signature Verification Failed");
             setIsProcessing(false);
@@ -156,7 +166,7 @@ export default function CheckoutPage() {
           description: `Order Amount: ₹${total.toLocaleString("en-IN")}.`,
         });
         clearCart();
-        router.push("/");
+        router.push("/account/orders");
       }
     } catch (err: any) {
       toast.error(err.message || "Payment Gateway Error");

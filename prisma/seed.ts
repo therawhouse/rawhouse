@@ -182,8 +182,10 @@ async function main() {
     });
 
     // Create inventory record
-    await prisma.inventory.create({
-      data: {
+    await prisma.inventory.upsert({
+      where: { sku: `RWH-${product.slug.toUpperCase()}-STOCK` },
+      update: {},
+      create: {
         sku: `RWH-${product.slug.toUpperCase()}-STOCK`,
         quantity: 25,
         productId: product.id,

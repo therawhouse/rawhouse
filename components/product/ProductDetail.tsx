@@ -5,6 +5,8 @@ import Image from "next/image";
 import { Heart, ShoppingBag, CreditCard, Shield, Truck, RotateCcw, ChevronDown, Check } from "lucide-react";
 import { Product } from "@/types";
 import { toast } from "sonner";
+import { SizeGuideModal } from "./SizeGuideModal";
+import { ProductReviews } from "./ProductReviews";
 
 /**
  * ============================================================================
@@ -34,6 +36,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [selectedSize, setSelectedSize] = useState<string>(product.sizes?.[0]?.sizeName || "M");
   const [selectedColor, setSelectedColor] = useState<string>(product.colors?.[0]?.colorName || "Espresso Brown");
   const [activeAccordion, setActiveAccordion] = useState<string | null>("details");
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   const toggleAccordion = (section: string) => {
     setActiveAccordion(activeAccordion === section ? null : section);
@@ -153,7 +156,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs uppercase tracking-[0.2em]">
                 <span className="text-raw-ivory font-medium">Select Size</span>
-                <button className="text-raw-gold underline hover:text-raw-goldHover text-[11px]">
+                <button
+                  onClick={() => setIsSizeGuideOpen(true)}
+                  className="text-raw-gold underline hover:text-raw-goldHover text-[11px]"
+                >
                   Size Guide
                 </button>
               </div>
@@ -265,6 +271,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
 
         </div>
       </div>
+
+      <ProductReviews productId={product.id} />
+
+      <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
     </div>
   );
 };

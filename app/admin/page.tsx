@@ -1,29 +1,49 @@
 "use client";
 
-import React from "react";
-import { DollarSign, ShoppingBag, Package, Users, TrendingUp, AlertTriangle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { DollarSign, ShoppingBag, Package, Users, TrendingUp, AlertTriangle, Loader2 } from "lucide-react";
 import Link from "next/link";
-
-/**
- * ============================================================================
- * THE RAW HOUSE - Admin Overview Dashboard Page
- * ============================================================================
- */
+import { toast } from "sonner";
 
 export default function AdminOverviewPage() {
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch("/api/admin/analytics");
+        const json = await res.json();
+        if (json.success) {
+          setData(json.data);
+        } else {
+          toast.error("Failed to load analytics");
+        }
+      } catch (error) {
+        toast.error("Error loading dashboard data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAnalytics();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center text-raw-gold">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
   const stats = [
-    { title: "Total Revenue", value: "₹14,85,000", change: "+18.4%", icon: DollarSign },
-    { title: "Total Orders", value: "142 Orders", change: "+12.1%", icon: ShoppingBag },
-    { title: "Active Products", value: "48 Items", change: "In Stock", icon: Package },
-    { title: "VIP Clients", value: "328 Registered", change: "+8 New Today", icon: Users },
+    { title: "Total Revenue", value: `₹${(data?.totalRevenue || 0).toLocaleString("en-IN")}`, change: "All Time", icon: DollarSign },
+    { title: "Total Orders", value: `${data?.totalOrders || 0} Orders`, change: "All Time", icon: ShoppingBag },
+    { title: "Active Products", value: `${data?.activeProducts || 0} Items`, change: "In Stock", icon: Package },
+    { title: "VIP Clients", value: `${data?.vipClients || 0} Registered`, change: "Total Users", icon: Users },
   ];
 
-  const recentOrders = [
-    { id: "RWH-2026-901", customer: "Aarav Sharma", total: "₹1,96,500", status: "PAID", date: "Just now" },
-    { id: "RWH-2026-900", customer: "Priya Kapoor", total: "₹84,500", status: "SHIPPED", date: "1 hour ago" },
-    { id: "RWH-2026-899", customer: "Devika Roy", total: "₹1,35,000", status: "PROCESSING", date: "3 hours ago" },
-    { id: "RWH-2026-898", customer: "Vikram Malhotra", total: "₹68,000", status: "DELIVERED", date: "Yesterday" },
-  ];
+  const recentOrders = data?.recentOrders || [];
 
   return (
     <div className="space-y-8">
@@ -93,25 +113,39 @@ export default function AdminOverviewPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-raw-border/40">
-                {recentOrders.map((o) => (
-                  <tr key={o.id} className="hover:bg-raw-charcoal/50 transition-colors">
-                    <td className="py-4 font-mono text-raw-gold">{o.id}</td>
-                    <td className="py-4 font-medium text-raw-ivory">{o.customer}</td>
-                    <td className="py-4 font-bold text-raw-ivory">{o.total}</td>
-                    <td className="py-4">
-                      <span className="bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold">
-                        {o.status}
-                      </span>
+                {recentOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-raw-muted">
+                      No recent orders.
                     </td>
-                    <td className="py-4 text-raw-muted text-[11px]">{o.date}</td>
                   </tr>
-                ))}
+                ) : (
+                  recentOrders.map((o: any) => (
+                    <tr key={o.id} className="hover:bg-raw-charcoal/50 transition-colors">
+                      <td className="py-4 font-mono text-raw-gold">{o.id}</td>
+                      <td className="py-4 font-medium text-raw-ivory">{o.customer}</td>
+                      <td className="py-4 font-bold text-raw-ivory">₹{o.total?.toLocaleString("en-IN")}</td>
+                      <td className="py-4">
+                        <span className={`text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold border ${
+                          o.status === "DELIVERED"
+                            ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-400"
+                            : o.status === "SHIPPED"
+                            ? "bg-sky-950/80 border-sky-500/40 text-sky-400"
+                            : "bg-raw-gold/20 border-raw-gold/40 text-raw-gold"
+                        }`}>
+                          {o.status}
+                        </span>
+                      </td>
+                      <td className="py-4 text-raw-muted text-[11px]">{new Date(o.date).toLocaleDateString()}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Right: Low Stock Alerts */}
+        {/* Right: Low Stock Alerts (Mock for now, could integrate later) */}
         <div className="lg:col-span-4 bg-raw-card border border-raw-border p-6 rounded-sm space-y-6">
           <div className="flex justify-between items-center border-b border-raw-border pb-4">
             <h3 className="text-sm font-serif-luxury uppercase tracking-[0.2em] text-raw-gold flex items-center space-x-2">
@@ -121,21 +155,7 @@ export default function AdminOverviewPage() {
           </div>
 
           <div className="space-y-4 text-xs">
-            <div className="p-3 bg-raw-bg border border-raw-border rounded-sm space-y-1">
-              <div className="flex justify-between text-raw-ivory font-bold">
-                <span>Raw Silk Bomber Jacket</span>
-                <span className="text-raw-gold font-mono">2 left</span>
-              </div>
-              <p className="text-[11px] text-raw-muted">Variant: Espresso Brown / Size L</p>
-            </div>
-
-            <div className="p-3 bg-raw-bg border border-raw-border rounded-sm space-y-1">
-              <div className="flex justify-between text-raw-ivory font-bold">
-                <span>Horsebit Loafers</span>
-                <span className="text-raw-gold font-mono">1 left</span>
-              </div>
-              <p className="text-[11px] text-raw-muted">Variant: Antique Bronze / Size EU 42</p>
-            </div>
+            <p className="text-raw-muted italic text-[11px]">Dynamic inventory alerts coming in Phase 3.</p>
           </div>
         </div>
 

@@ -48,9 +48,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, price, categoryId, gender, images } = body;
+    const { title, description, price, categoryId, categorySlug, gender, images } = body;
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+    let finalCategoryId = categoryId;
+    if (!finalCategoryId && categorySlug) {
+      const cat = await prisma.category.findUnique({ where: { slug: categorySlug } });
+      if (cat) finalCategoryId = cat.id;
+    }
+
+    if (!finalCategoryId) {
+      return NextResponse.json({ success: false, error: "Valid category is required" }, { status: 400 });
+    }
 
     const product = await prisma.product.create({
       data: {
@@ -58,7 +68,7 @@ export async function POST(request: NextRequest) {
         slug,
         description: description || title,
         price: Number(price),
-        categoryId,
+        categoryId: finalCategoryId,
         gender: gender || "Unisex",
         images: {
           create: (images || []).map((url: string, idx: number) => ({

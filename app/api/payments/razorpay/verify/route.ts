@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { sendEmail, getOrderConfirmationEmailHtml } from "@/lib/resend";
 import { logPaymentEvent, logError } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 
 /**
  * ============================================================================
@@ -18,7 +19,8 @@ export async function POST(request: NextRequest) {
       razorpaySignature,
       customerEmail,
       customerName,
-      totalAmount,
+      addressDetails,
+      cartItems,
     } = body;
 
     // Verify Signature
@@ -40,12 +42,88 @@ export async function POST(request: NextRequest) {
       razorpayPaymentId,
     });
 
+    // 1. Get or create User
+    const safeEmail = customerEmail || "guest@rawhouse.in";
+    const user = await prisma.user.upsert({
+      where: { email: safeEmail },
+      update: {},
+      create: {
+        email: safeEmail,
+        name: customerName,
+        firstName: addressDetails?.firstName,
+        lastName: addressDetails?.lastName,
+        phone: addressDetails?.phone,
+      },
+    });
+
+    // 2. Create Address
+    const address = await prisma.address.create({
+      data: {
+        userId: user.id,
+        fullName: customerName || "Guest",
+        phone: addressDetails?.phone || "0000000000",
+        streetAddress: addressDetails?.address || "N/A",
+        apartment: addressDetails?.apartment,
+        city: addressDetails?.city || "N/A",
+        state: addressDetails?.state || "N/A",
+        postalCode: addressDetails?.pincode || "000000",
+      },
+    });
+
+    // 3. Create Order
+    let subtotal = 0;
+    if (cartItems) {
+      subtotal = cartItems.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+    }
+    const shippingFee = subtotal > 50000 ? 0 : 1500;
+    const totalAmount = subtotal + shippingFee;
+
+    const order = await prisma.order.create({
+      data: {
+        orderNumber: `ORD-${Date.now()}`,
+        userId: user.id,
+        addressId: address.id,
+        subtotal,
+        shippingFee,
+        totalAmount,
+        status: "PAID",
+        paymentStatus: "SUCCESS",
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature,
+        items: {
+          create: (cartItems || []).map((item: any) => ({
+            productId: item.productId,
+            price: item.price,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color,
+          })),
+        },
+      },
+    });
+
+    // 4. Update Inventory
+    if (cartItems) {
+      for (const item of cartItems) {
+        const inventory = await prisma.inventory.findFirst({
+          where: { productId: item.productId },
+        });
+        if (inventory) {
+          await prisma.inventory.update({
+            where: { id: inventory.id },
+            data: { quantity: { decrement: item.quantity } },
+          });
+        }
+      }
+    }
+
     // Send Confirmation Email via Resend
     if (customerEmail) {
       const emailHtml = getOrderConfirmationEmailHtml(
         razorpayOrderId,
         customerName || "Valued Client",
-        totalAmount || 84500
+        totalAmount
       );
       await sendEmail({
         to: customerEmail,
@@ -58,7 +136,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Payment successfully verified and order recorded.",
       data: {
-        orderId: razorpayOrderId,
+        orderId: order.id,
         paymentId: razorpayPaymentId,
       },
     });
