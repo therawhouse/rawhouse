@@ -19,6 +19,7 @@ interface ProductDetailProps {
   onAddToCart: (product: Product, selectedSize?: string, selectedColor?: string) => void;
   onRazorpayCheckout: (product: Product, selectedSize?: string, selectedColor?: string) => void;
   onAddToWishlist: (product: Product) => void;
+  onOpenAuth?: () => void;
 }
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({
@@ -26,6 +27,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   onAddToCart,
   onRazorpayCheckout,
   onAddToWishlist,
+  onOpenAuth,
 }) => {
   const images = product.images?.length > 0 ? product.images : [
     { id: "1", url: "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1200", isPrimary: true, sortOrder: 0 },
@@ -272,7 +274,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
         </div>
       </div>
 
-      <ProductReviews productId={product.id} />
+      <ProductReviews productId={product.id} onOpenAuth={onOpenAuth} />
 
       <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
     </div>

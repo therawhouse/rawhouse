@@ -7,9 +7,10 @@ import { useSession } from "next-auth/react";
 
 interface ProductReviewsProps {
   productId: string;
+  onOpenAuth?: () => void;
 }
 
-export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
+export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId, onOpenAuth }) => {
   const { data: session } = useSession();
   const [reviews, setReviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -145,9 +146,12 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => 
               <div className="text-center space-y-4 py-4">
                 <MessageSquare className="w-8 h-8 text-raw-muted mx-auto" />
                 <p className="text-xs text-raw-muted">You must be logged in to leave a review.</p>
-                <a href="/login" className="inline-block border border-raw-border text-raw-ivory px-6 py-2 text-xs uppercase tracking-widest hover:border-raw-gold hover:text-raw-gold">
+                <button 
+                  onClick={onOpenAuth}
+                  className="inline-block border border-raw-border text-raw-ivory px-6 py-2 text-xs uppercase tracking-widest hover:border-raw-gold hover:text-raw-gold"
+                >
                   Log In
-                </a>
+                </button>
               </div>
             )}
           </div>

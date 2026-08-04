@@ -75,6 +75,7 @@ export default function ProductDetailPage() {
           onAddToCart={addToCart}
           onRazorpayCheckout={handleRazorpayCheckout}
           onAddToWishlist={(p) => setWishlistItems([...wishlistItems, p])}
+          onOpenAuth={() => setIsAuthOpen(true)}
         />
       </main>
 
