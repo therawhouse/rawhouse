@@ -28,13 +28,13 @@ export const Header: React.FC<HeaderProps> = ({
   const { data: session } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white text-black border-b border-gray-200 transition-colors duration-300">
+    <header className="sticky top-0 z-50 w-full bg-[#111111] text-white border-b border-gray-800 transition-colors duration-300">
       <div className="px-6 py-4">
         <div className="max-w-[1400px] mx-auto grid grid-cols-3 items-center">
           
           {/* Left: Contact Us */}
           <div className="flex items-center">
-            <Link href="/contact" className="hidden md:flex items-center space-x-2 text-xs font-semibold tracking-wider hover:text-gray-600 transition-colors">
+            <Link href="/contact" className="hidden md:flex items-center space-x-2 text-xs font-semibold tracking-wider hover:text-gray-400 transition-colors">
               <Plus className="w-4 h-4" />
               <span>Contact Us</span>
             </Link>
@@ -59,28 +59,28 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Account / Wishlist / Cart Icons (E-commerce Essentials) */}
             <div className="hidden lg:flex items-center space-x-4 mr-4">
               {session ? (
-                <button onClick={() => signOut()} className="hover:text-gray-500 transition-colors flex items-center space-x-1" title="Sign Out">
+                <button onClick={() => signOut()} className="hover:text-gray-400 transition-colors flex items-center space-x-1" title="Sign Out">
                   <LogOut className="w-5 h-5" />
                 </button>
               ) : (
-                <button onClick={onOpenAuth} className="hover:text-gray-500 transition-colors" title="Client Account">
+                <button onClick={onOpenAuth} className="hover:text-gray-400 transition-colors" title="Client Account">
                   <User className="w-5 h-5" />
                 </button>
               )}
 
-              <button onClick={onOpenWishlist} className="hover:text-gray-500 transition-colors relative" title="Wishlist">
+              <button onClick={onOpenWishlist} className="hover:text-gray-400 transition-colors relative" title="Wishlist">
                 <Heart className="w-5 h-5" />
                 {wishlistItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-white text-black text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                     {wishlistItemCount}
                   </span>
                 )}
               </button>
 
-              <button onClick={onOpenCart} className="hover:text-gray-500 transition-colors relative" title="Shopping Bag">
+              <button onClick={onOpenCart} className="hover:text-gray-400 transition-colors relative" title="Shopping Bag">
                 <ShoppingBag className="w-5 h-5" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-black text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">
+                  <span className="absolute -top-2 -right-2 bg-white text-black text-[10px] font-bold rounded-full px-1.5 py-0.5">
                     {cartItemCount}
                   </span>
                 )}
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Search Trigger */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="hover:text-gray-500 transition-colors"
+              className="hover:text-gray-400 transition-colors"
               title="Search"
             >
               <Search className="w-5 h-5" />
@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Menu Trigger */}
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="flex items-center space-x-2 text-sm font-semibold tracking-wider hover:text-gray-500 transition-colors"
+              className="flex items-center space-x-2 text-sm font-semibold tracking-wider hover:text-gray-400 transition-colors"
             >
               <Menu className="w-6 h-6" />
               <span className="hidden sm:inline">MENU</span>
