@@ -79,6 +79,7 @@ const handler = NextAuth({
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 60, // 30 minutes session expiry
   },
   pages: {
     signIn: "/", // We use the modal on the home page

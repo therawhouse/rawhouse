@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex justify-center items-center">
             <Link href="/" className="relative w-48 h-16 flex items-center justify-center group">
               <Image
-                src="/images/logo.png"
+                src="/images/logo.jpg"
                 alt="THE RAW HOUSE"
                 fill
                 className="object-contain transition-transform group-hover:scale-105"
