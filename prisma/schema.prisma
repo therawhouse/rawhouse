@@ -58,42 +58,42 @@ enum DiscountType {
 
 /// Standard Customer profile linked to NextAuth
 model User {
-  id            String      @id @default(uuid())
-  name          String?     // NextAuth standard field
-  email         String?     @unique
-  emailVerified DateTime?   // NextAuth standard field
-  image         String?     // NextAuth standard field
-  passwordHash  String?     // Optional if signed up via Google OAuth
+  id            String    @id @default(uuid())
+  name          String? // NextAuth standard field
+  email         String?   @unique
+  emailVerified DateTime? // NextAuth standard field
+  image         String? // NextAuth standard field
+  passwordHash  String? // Optional if signed up via Google OAuth
   firstName     String?
   lastName      String?
   phone         String?
-  role          Role        @default(CUSTOMER)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  role          Role      @default(CUSTOMER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // NextAuth Relations
-  accounts      Account[]
-  sessions      Session[]
+  accounts Account[]
+  sessions Session[]
 
   // E-commerce Relations
-  addresses     Address[]
-  orders        Order[]
-  reviews       Review[]
-  cart          Cart?
-  wishlist      Wishlist?
+  addresses Address[]
+  orders    Order[]
+  reviews   Review[]
+  cart      Cart?
+  wishlist  Wishlist?
 
   @@map("users")
 }
 
 /// Elevated Privilege System Administrators
 model AdminUser {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  name        String
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
   passwordHash String
-  permissions String[] // e.g. ["MANAGE_PRODUCTS", "MANAGE_ORDERS", "MANAGE_COUPONS"]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  permissions  String[] // e.g. ["MANAGE_PRODUCTS", "MANAGE_ORDERS", "MANAGE_COUPONS"]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("admin_users")
 }
@@ -105,10 +105,10 @@ model AdminUser {
 /// Product Categories supporting multi-level nested parent/child hierarchies
 model Category {
   id          String     @id @default(uuid())
-  name        String     // e.g. "Outerwear", "Tailored Suits", "Footwear"
+  name        String // e.g. "Outerwear", "Tailored Suits", "Footwear"
   slug        String     @unique // e.g. "outerwear"
   description String?
-  imageUrl    String?    // Category banner image stored in Supabase
+  imageUrl    String? // Category banner image stored in Supabase
   parentId    String?
   parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children    Category[] @relation("CategoryHierarchy")
@@ -117,61 +117,66 @@ model Category {
 
   // Relations
   products    Product[]
+  sizeGuideId String?
+  sizeGuide   SizeGuide? @relation(fields: [sizeGuideId], references: [id])
 
   @@map("categories")
 }
 
 /// Primary Product entity representing a luxury garment or accessory item
 model Product {
-  id          String   @id @default(uuid())
-  title       String   // e.g. "Raw Silk Embroidered Bomber Jacket"
-  slug        String   @unique
-  description String   // Detailed product story and luxury editorial description
-  details     String?  // Accordion text: Materials, Care instructions, Fitting guide
-  price       Float    // Base price in INR (₹)
-  salePrice   Float?   // Optional promotional discounted price
-  gender      String   // "Men", "Women", "Unisex"
-  isFeatured  Boolean  @default(false)
-  isBestSeller Boolean @default(false)
-  isNewArrival Boolean @default(true)
-  isPublished Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  title        String // e.g. "Raw Silk Embroidered Bomber Jacket"
+  slug         String   @unique
+  description  String // Detailed product story and luxury editorial description
+  details      String? // Accordion text: Materials, Care instructions, Fitting guide
+  price        Float // Base price in INR (₹)
+  salePrice    Float? // Optional promotional discounted price
+  gender       String // "Men", "Women", "Unisex"
+  isFeatured   Boolean  @default(false)
+  isBestSeller Boolean  @default(false)
+  isNewArrival Boolean  @default(true)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
-  categoryId  String
-  category    Category       @relation(fields: [categoryId], references: [id])
-  images      ProductImage[]
-  sizes       ProductSize[]
-  colors      ProductColor[]
-  inventories Inventory[]
-  orderItems  OrderItem[]
-  cartItems   CartItem[]
+  categoryId    String
+  category      Category       @relation(fields: [categoryId], references: [id])
+  sizeGuideId   String?
+  sizeGuide     SizeGuide?     @relation(fields: [sizeGuideId], references: [id])
+  productDetail ProductDetail?
+  images        ProductImage[]
+  sizes         ProductSize[]
+  colors        ProductColor[]
+  inventories   Inventory[]
+  orderItems    OrderItem[]
+  cartItems     CartItem[]
   wishlistItems WishlistItem[]
-  reviews     Review[]
+  reviews       Review[]
 
   @@map("products")
 }
 
 /// Image gallery urls stored in Supabase Storage with order priority
 model ProductImage {
-  id        String   @id @default(uuid())
-  url       String   // Supabase Storage URL
+  id        String  @id @default(uuid())
+  url       String // Supabase Storage URL
   altText   String?
-  isPrimary Boolean  @default(false)
-  sortOrder Int      @default(0)
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_images")
 }
 
 /// Size variant options (e.g. S, M, L, XL, EU 42, EU 44)
 model ProductSize {
-  id        String   @id @default(uuid())
-  sizeName  String   // e.g., "M" or "EU 42"
+  id        String  @id @default(uuid())
+  sizeName  String // e.g., "M" or "EU 42"
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   inventories Inventory[]
 
@@ -180,11 +185,11 @@ model ProductSize {
 
 /// Color variant options with hex values (e.g. Espresso `#16100e`, Raw Gold `#c69255`)
 model ProductColor {
-  id        String   @id @default(uuid())
-  colorName String   // e.g. "Espresso Brown"
-  hexCode   String   // e.g. "#16100e"
+  id        String  @id @default(uuid())
+  colorName String // e.g. "Espresso Brown"
+  hexCode   String // e.g. "#16100e"
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   inventories Inventory[]
 
@@ -193,17 +198,17 @@ model ProductColor {
 
 /// Exact stock tracking per SKU combination (Product + Size + Color)
 model Inventory {
-  id        String       @id @default(uuid())
-  sku       String       @unique // e.g. "RWH-BOMBER-ESP-M"
-  quantity  Int          @default(0)
+  id        String        @id @default(uuid())
+  sku       String        @unique // e.g. "RWH-BOMBER-ESP-M"
+  quantity  Int           @default(0)
   productId String
-  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   sizeId    String?
   size      ProductSize?  @relation(fields: [sizeId], references: [id])
   colorId   String?
   color     ProductColor? @relation(fields: [colorId], references: [id])
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@map("inventory")
 }
@@ -213,14 +218,14 @@ model Inventory {
 // ----------------------------------------------------------------------------
 
 model Cart {
-  id        String     @id @default(uuid())
-  userId    String?    @unique // Null for guest session cart
-  sessionId String?    @unique // Session token for unauthenticated visitors
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id        String   @id @default(uuid())
+  userId    String?  @unique // Null for guest session cart
+  sessionId String?  @unique // Session token for unauthenticated visitors
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
 
   @@map("carts")
 }
@@ -231,8 +236,8 @@ model CartItem {
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id])
-  size      String?  // Selected size label
-  color     String?  // Selected color label
+  size      String? // Selected size label
+  color     String? // Selected color label
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
 
@@ -265,47 +270,47 @@ model WishlistItem {
 // ----------------------------------------------------------------------------
 
 model Address {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName     String
-  phone        String
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName      String
+  phone         String
   streetAddress String
-  apartment    String?
-  city         String
-  state        String
-  postalCode   String
-  country      String   @default("India")
-  isDefault    Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  apartment     String?
+  city          String
+  state         String
+  postalCode    String
+  country       String   @default("India")
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
-  orders       Order[]
+  orders Order[]
 
   @@map("addresses")
 }
 
 model Order {
-  id              String        @id @default(uuid())
-  orderNumber     String        @unique // e.g. "RWH-2026-89421"
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  addressId       String
-  shippingAddress Address       @relation(fields: [addressId], references: [id])
-  subtotal        Float
-  discountAmount  Float         @default(0.0)
-  taxAmount       Float         @default(0.0)
-  shippingFee     Float         @default(0.0)
-  totalAmount     Float
-  status          OrderStatus   @default(PENDING)
-  paymentStatus   PaymentStatus @default(PENDING)
-  razorpayOrderId String?       // Razorpay API Order ID (e.g. order_K9xJ82kLa1S982)
-  razorpayPaymentId String?     // Razorpay Payment ID after successful transaction
-  razorpaySignature String?     // Verified HMAC signature
-  trackingNumber  String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                String        @id @default(uuid())
+  orderNumber       String        @unique // e.g. "RWH-2026-89421"
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  addressId         String
+  shippingAddress   Address       @relation(fields: [addressId], references: [id])
+  subtotal          Float
+  discountAmount    Float         @default(0.0)
+  taxAmount         Float         @default(0.0)
+  shippingFee       Float         @default(0.0)
+  totalAmount       Float
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  razorpayOrderId   String? // Razorpay API Order ID (e.g. order_K9xJ82kLa1S982)
+  razorpayPaymentId String? // Razorpay Payment ID after successful transaction
+  razorpaySignature String? // Verified HMAC signature
+  trackingNumber    String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  items           OrderItem[]
+  items OrderItem[]
 
   @@map("orders")
 }
@@ -316,7 +321,7 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id])
-  price     Float    // Price snapshot at purchase time
+  price     Float // Price snapshot at purchase time
   quantity  Int
   size      String?
   color     String?
@@ -333,9 +338,9 @@ model Coupon {
   id            String       @id @default(uuid())
   code          String       @unique // e.g., "LUXURY20"
   discountType  DiscountType @default(PERCENTAGE)
-  discountValue Float        // 20% or ₹500 off
-  minOrderValue Float?       // Minimum order threshold
-  maxDiscount   Float?       // Cap for percentage discounts
+  discountValue Float // 20% or ₹500 off
+  minOrderValue Float? // Minimum order threshold
+  maxDiscount   Float? // Cap for percentage discounts
   expiresAt     DateTime?
   usageLimit    Int?
   timesUsed     Int          @default(0)
@@ -347,7 +352,7 @@ model Coupon {
 
 model Review {
   id        String   @id @default(uuid())
-  rating    Int      // 1 to 5 stars
+  rating    Int // 1 to 5 stars
   title     String?
   comment   String
   images    String[] // Supabase customer upload review images
@@ -365,18 +370,18 @@ model Review {
 // ----------------------------------------------------------------------------
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String  @map("user_id")
-  type               String
-  provider           String
-  providerAccountId  String  @map("provider_account_id")
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -401,4 +406,148 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+// ----------------------------------------------------------------------------
+// 7. Product Information & CMS
+// ----------------------------------------------------------------------------
+
+model ProductDetail {
+  id        String  @id @default(cuid())
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // DESCRIPTION & FIT
+  badge           String?
+  descriptionHtml String? @db.Text
+  artNo           String?
+  fitType         String?
+  length          String?
+  sleeveLength    String?
+  neckline        String?
+  styleNotes      Json?
+
+  // MATERIAL & CARE
+  composition        String?
+  materialSummary    String?
+  careInstructions   String[]
+  sustainabilityNote String?  @db.Text
+  supplierInfoUrl    String?
+
+  // DELIVERY AND PAYMENT
+  deliveryTime     String?
+  deliveryNoteHtml String? @db.Text
+  returnsEligible  Boolean @default(true)
+  returnsNoteHtml  String? @db.Text
+  isPublished      Boolean @default(true)
+
+  measurements     ProductMeasurement[]
+  legalFields      ProductLegalField[]
+  materialGlossary MaterialGlossaryOnProduct[]
+
+  @@map("product_details")
+}
+
+model ProductMeasurement {
+  id              String        @id @default(cuid())
+  productDetailId String
+  productDetail   ProductDetail @relation(fields: [productDetailId], references: [id], onDelete: Cascade)
+  sizeLabel       String
+  values          Json
+  sortOrder       Int           @default(0)
+
+  @@unique([productDetailId, sizeLabel])
+  @@map("product_measurements")
+}
+
+model ProductLegalField {
+  id              String        @id @default(cuid())
+  productDetailId String
+  productDetail   ProductDetail @relation(fields: [productDetailId], references: [id], onDelete: Cascade)
+  key             String
+  label           String
+  value           String        @db.Text
+  isRequired      Boolean       @default(false)
+  sortOrder       Int           @default(0)
+
+  @@map("product_legal_fields")
+}
+
+model MaterialGlossary {
+  id          String                      @id @default(cuid())
+  name        String                      @unique
+  description String                      @db.Text
+  iconUrl     String?
+  products    MaterialGlossaryOnProduct[]
+
+  @@map("material_glossary")
+}
+
+model MaterialGlossaryOnProduct {
+  productDetailId    String
+  materialGlossaryId String
+  sortOrder          Int              @default(0)
+  productDetail      ProductDetail    @relation(fields: [productDetailId], references: [id], onDelete: Cascade)
+  materialGlossary   MaterialGlossary @relation(fields: [materialGlossaryId], references: [id], onDelete: Cascade)
+
+  @@id([productDetailId, materialGlossaryId])
+  @@map("material_glossary_on_product")
+}
+
+model SizeGuide {
+  id                 String             @id @default(cuid())
+  name               String
+  slug               String             @unique
+  displayTitle       String
+  howToMeasureImage  String?
+  isActive           Boolean            @default(true)
+  isDefaultForGender String?
+  measurementPoints  SizeGuidePoint[]
+  variants           SizeGuideVariant[]
+  categories         Category[]
+  products           Product[]
+
+  @@map("size_guides")
+}
+
+model SizeGuidePoint {
+  id          String    @id @default(cuid())
+  sizeGuideId String
+  sizeGuide   SizeGuide @relation(fields: [sizeGuideId], references: [id], onDelete: Cascade)
+  number      Int
+  label       String
+  description String    @db.Text
+  sortOrder   Int       @default(0)
+
+  @@map("size_guide_points")
+}
+
+model SizeGuideVariant {
+  id          String           @id @default(cuid())
+  sizeGuideId String
+  sizeGuide   SizeGuide        @relation(fields: [sizeGuideId], references: [id], onDelete: Cascade)
+  name        String
+  sortOrder   Int              @default(0)
+  groups      SizeGuideGroup[]
+
+  @@map("size_guide_variants")
+}
+
+model SizeGuideGroup {
+  id        String           @id @default(cuid())
+  variantId String
+  variant   SizeGuideVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  name      String
+  columns   String[]
+  rows      Json
+  sortOrder Int              @default(0)
+
+  @@map("size_guide_groups")
+}
+
+model StoreSetting {
+  key   String @id
+  value Json
+
+  @@map("store_settings")
 }

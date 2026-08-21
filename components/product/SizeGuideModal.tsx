@@ -1,122 +1,168 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { SizeGuideWithRelations } from "@/types/product-details";
 import { X } from "lucide-react";
+import Image from "next/image";
 
 interface SizeGuideModalProps {
+  guide: SizeGuideWithRelations;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const SizeGuideModal: React.FC<SizeGuideModalProps> = ({ isOpen, onClose }) => {
+export function SizeGuideModal({ guide, isOpen, onClose }: SizeGuideModalProps) {
+  const [activeVariant, setActiveVariant] = useState(guide.variants?.[0]?.id || "");
+  const [activeGroup, setActiveGroup] = useState(guide.variants?.[0]?.groups?.[0]?.id || "");
+
   if (!isOpen) return null;
 
+  const currentVariant = guide.variants?.find((v) => v.id === activeVariant);
+  const currentGroup = currentVariant?.groups?.find((g) => g.id === activeGroup);
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 animate-fade-in">
-      <div className="absolute inset-0 bg-raw-bg/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-raw-card border border-raw-border w-full max-w-2xl p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto">
-        <button
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex justify-end">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute top-4 right-4 text-raw-muted hover:text-raw-gold"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        />
+
+        <motion.div
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="relative w-full max-w-2xl bg-[#f9f6f0] h-full shadow-2xl flex flex-col"
         >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="space-y-6">
-          <div className="text-center border-b border-raw-border pb-6">
-            <h2 className="text-xl font-serif-luxury text-raw-ivory tracking-widest uppercase">
-              Atelier Size Guide
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-[#241b18]/10">
+            <h2 className="font-serif text-2xl text-[#241b18] uppercase">
+              {guide.displayTitle}
             </h2>
-            <p className="text-xs text-raw-muted mt-2 tracking-wider">
-              Measurements are in inches. Garments are tailored for a true-to-size luxury fit.
-            </p>
+            <button onClick={onClose} className="p-2 text-[#241b18]/60 hover:text-[#241b18] transition-colors">
+              <X size={24} />
+            </button>
           </div>
 
-          <div>
-            <h3 className="text-sm text-raw-gold uppercase tracking-widest font-bold mb-4">Men's Topwear</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-raw-ivory border-collapse">
-                <thead>
-                  <tr className="bg-raw-bg border-b border-raw-border">
-                    <th className="p-3">Size</th>
-                    <th className="p-3">Chest</th>
-                    <th className="p-3">Shoulder</th>
-                    <th className="p-3">Sleeve</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-raw-border/50">
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">S (46)</td>
-                    <td className="p-3">38"</td>
-                    <td className="p-3">17.5"</td>
-                    <td className="p-3">25"</td>
-                  </tr>
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">M (48)</td>
-                    <td className="p-3">40"</td>
-                    <td className="p-3">18"</td>
-                    <td className="p-3">25.5"</td>
-                  </tr>
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">L (50)</td>
-                    <td className="p-3">42"</td>
-                    <td className="p-3">18.5"</td>
-                    <td className="p-3">26"</td>
-                  </tr>
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">XL (52)</td>
-                    <td className="p-3">44"</td>
-                    <td className="p-3">19"</td>
-                    <td className="p-3">26.5"</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <div className="flex-1 overflow-y-auto p-6 space-y-10">
+            {/* How to measure */}
+            {guide.howToMeasureImage && (
+              <div className="space-y-4">
+                <h3 className="font-sans text-sm tracking-widest text-[#241b18] uppercase">
+                  How to Measure
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                  <div className="relative aspect-square bg-white p-4">
+                    <Image
+                      src={guide.howToMeasureImage}
+                      alt="How to measure guide"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    {guide.measurementPoints?.map((pt) => (
+                      <div key={pt.id}>
+                        <h4 className="font-sans font-medium text-sm text-[#241b18]">
+                          {pt.number}. {pt.label}
+                        </h4>
+                        <p className="text-xs text-[#241b18]/70 mt-1">{pt.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
-          <div>
-            <h3 className="text-sm text-raw-gold uppercase tracking-widest font-bold mb-4">Women's Topwear</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-raw-ivory border-collapse">
-                <thead>
-                  <tr className="bg-raw-bg border-b border-raw-border">
-                    <th className="p-3">Size</th>
-                    <th className="p-3">Bust</th>
-                    <th className="p-3">Waist</th>
-                    <th className="p-3">Hip</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-raw-border/50">
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">XS (38)</td>
-                    <td className="p-3">32"</td>
-                    <td className="p-3">25"</td>
-                    <td className="p-3">35"</td>
-                  </tr>
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">S (40)</td>
-                    <td className="p-3">34"</td>
-                    <td className="p-3">27"</td>
-                    <td className="p-3">37"</td>
-                  </tr>
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">M (42)</td>
-                    <td className="p-3">36"</td>
-                    <td className="p-3">29"</td>
-                    <td className="p-3">39"</td>
-                  </tr>
-                  <tr className="hover:bg-raw-charcoal/30">
-                    <td className="p-3 font-bold text-raw-gold">L (44)</td>
-                    <td className="p-3">38"</td>
-                    <td className="p-3">31"</td>
-                    <td className="p-3">41"</td>
-                  </tr>
-                </tbody>
-              </table>
+            {/* Matrix */}
+            <div className="space-y-6">
+              <h3 className="font-sans text-sm tracking-widest text-[#241b18] uppercase">
+                Select Size Range
+              </h3>
+              
+              {/* Variant Tabs */}
+              {guide.variants && guide.variants.length > 1 && (
+                <div className="flex gap-6 border-b border-[#241b18]/10">
+                  {guide.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => {
+                        setActiveVariant(v.id);
+                        setActiveGroup(v.groups?.[0]?.id || "");
+                      }}
+                      className={`pb-3 text-sm font-medium transition-colors ${
+                        activeVariant === v.id
+                          ? "text-[#c69255] border-b-2 border-[#c69255]"
+                          : "text-[#241b18]/60 hover:text-[#241b18]"
+                      }`}
+                    >
+                      {v.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Group Tabs */}
+              {currentVariant?.groups && currentVariant.groups.length > 1 && (
+                <div className="flex flex-wrap gap-2">
+                  {currentVariant.groups.map((g) => (
+                    <button
+                      key={g.id}
+                      onClick={() => setActiveGroup(g.id)}
+                      className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-full transition-colors ${
+                        activeGroup === g.id
+                          ? "bg-[#241b18] text-[#f9f6f0]"
+                          : "border border-[#241b18]/20 text-[#241b18] hover:border-[#241b18]"
+                      }`}
+                    >
+                      {g.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Table */}
+              {currentGroup && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                      <tr className="border-b border-[#241b18]/20">
+                        <th scope="col" className="py-3 pr-4 font-medium text-[#241b18]/60 sticky left-0 bg-[#f9f6f0]">
+                          Measurement
+                        </th>
+                        {currentGroup.columns.map((col, i) => (
+                          <th key={i} scope="col" className="py-3 px-4 font-medium text-[#241b18] text-center">
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#241b18]/10">
+                      {(currentGroup.rows as Array<{ label: string; values: string[] }>).map((row, i) => (
+                        <tr key={i} className="hover:bg-white/50 transition-colors">
+                          <th scope="row" className="py-4 pr-4 font-medium text-[#241b18] sticky left-0 bg-[#f9f6f0]">
+                            {row.label}
+                          </th>
+                          {row.values.map((val, j) => (
+                            <td key={j} className="py-4 px-4 text-[#241b18]/80 text-center">
+                              {val}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
-};
+}

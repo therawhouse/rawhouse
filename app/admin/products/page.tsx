@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Edit3, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Trash2, Edit3, Image as ImageIcon, Loader2, Info } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 export default function AdminProductsPage() {
@@ -192,10 +193,13 @@ export default function AdminProductsPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right space-x-3">
-                      <button className="text-raw-muted hover:text-raw-gold">
+                      <Link href={`/admin/products/${p.id}/information`} className="text-raw-muted hover:text-blue-400" title="Edit Rich Information">
+                        <Info className="w-4 h-4 inline" />
+                      </Link>
+                      <button className="text-raw-muted hover:text-raw-gold" title="Edit Basic Info">
                         <Edit3 className="w-4 h-4 inline" />
                       </button>
-                      <button onClick={() => handleDelete(p.id)} className="text-raw-muted hover:text-red-400">
+                      <button onClick={() => handleDelete(p.id)} className="text-raw-muted hover:text-red-400" title="Delete Product">
                         <Trash2 className="w-4 h-4 inline" />
                       </button>
                     </td>

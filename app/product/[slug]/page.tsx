@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProductDetail } from "@/components/product/ProductDetail";
+import { ProductInfoAccordion } from "@/components/product/ProductInfoAccordion";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { WishlistDrawer } from "@/components/cart/WishlistDrawer";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -25,6 +26,9 @@ export default function ProductDetailPage() {
   const slug = params?.slug as string;
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [productDetails, setProductDetails] = useState<any>(null);
+  const [delivery, setDelivery] = useState<any>(null);
+  const [sizeGuide, setSizeGuide] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
@@ -39,12 +43,27 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     setIsLoading(true);
+    // Fetch product list
     fetch("/api/products")
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
           const found = json.data.find((p: Product) => p.slug === slug);
           setProduct(found || null);
+          
+          if (found) {
+            // Fetch rich details
+            fetch(`/api/products/${slug}/details`)
+              .then(res => res.json())
+              .then(detailJson => {
+                if (detailJson.success) {
+                  setProductDetails(detailJson.data.productDetails);
+                  setDelivery(detailJson.data.delivery);
+                  setSizeGuide(detailJson.data.sizeGuide);
+                }
+              })
+              .catch(err => console.error("Failed to fetch product details:", err));
+          }
         }
       })
       .catch((err) => console.error("Failed to fetch product:", err))
@@ -72,11 +91,21 @@ export default function ProductDetailPage() {
       <main className="flex-1">
         <ProductDetail
           product={product}
+          details={productDetails}
+          delivery={delivery}
+          sizeGuide={sizeGuide}
           onAddToCart={addToCart}
           onRazorpayCheckout={handleRazorpayCheckout}
           onAddToWishlist={(p) => setWishlistItems([...wishlistItems, p])}
           onOpenAuth={() => setIsAuthOpen(true)}
         />
+        <div className="max-w-7xl mx-auto px-6 pb-12">
+          <ProductInfoAccordion 
+            details={productDetails} 
+            delivery={delivery || { deliveryTime: "", deliveryNoteHtml: "", returnsEligible: true, returnsNoteHtml: "" }} 
+            fallbackDescription={product.description}
+          />
+        </div>
       </main>
 
       <Footer />

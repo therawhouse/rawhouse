@@ -16,6 +16,9 @@ import { ProductReviews } from "./ProductReviews";
 
 interface ProductDetailProps {
   product: Product;
+  details?: any;
+  delivery?: any;
+  sizeGuide?: any;
   onAddToCart: (product: Product, selectedSize?: string, selectedColor?: string) => void;
   onRazorpayCheckout: (product: Product, selectedSize?: string, selectedColor?: string) => void;
   onAddToWishlist: (product: Product) => void;
@@ -24,6 +27,9 @@ interface ProductDetailProps {
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({
   product,
+  details,
+  delivery,
+  sizeGuide,
   onAddToCart,
   onRazorpayCheckout,
   onAddToWishlist,
@@ -228,55 +234,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
           </div>
 
-          {/* Accordions: Details, Shipping, Store Availability */}
-          <div className="space-y-2 divide-y divide-raw-border/50 text-xs">
-            <div className="pt-2">
-              <button
-                onClick={() => toggleAccordion("details")}
-                className="w-full flex justify-between items-center py-3 text-raw-ivory uppercase tracking-[0.2em] font-medium text-left"
-              >
-                <span>Materials & Atelier Care</span>
-                <ChevronDown
-                  className={`w-4 h-4 text-raw-gold transition-transform ${
-                    activeAccordion === "details" ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {activeAccordion === "details" && (
-                <div className="pb-4 text-raw-muted leading-relaxed space-y-2">
-                  <p>{product.details || "100% Raw Mulberry Silk & Pure Virgin Wool lining."}</p>
-                  <p>Dry clean only by specialist luxury garment cleaners.</p>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <button
-                onClick={() => toggleAccordion("shipping")}
-                className="w-full flex justify-between items-center py-3 text-raw-ivory uppercase tracking-[0.2em] font-medium text-left"
-              >
-                <span>Express Shipping & Bespoke Packaging</span>
-                <ChevronDown
-                  className={`w-4 h-4 text-raw-gold transition-transform ${
-                    activeAccordion === "shipping" ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {activeAccordion === "shipping" && (
-                <div className="pb-4 text-raw-muted leading-relaxed space-y-2">
-                  <p>Orders are dispatched in signature gift box with velvet garment cover.</p>
-                  <p>Standard Delivery: 2-4 Business Days across major metro cities in India.</p>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* The new ProductInfoAccordion is rendered below this component in page.tsx */}
 
         </div>
       </div>
 
       <ProductReviews productId={product.id} onOpenAuth={onOpenAuth} />
 
-      <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
+      {sizeGuide && (
+        <SizeGuideModal guide={sizeGuide} isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
+      )}
     </div>
   );
 };
