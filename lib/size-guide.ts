@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { SizeGuideWithRelations } from "@/types/product-details";
 
 // The full include needed to render the size guide modal

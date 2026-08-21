@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { ProductDetailWithRelations, StoreDeliveryDefaults } from "@/types/product-details";
 
 export async function getStoreDeliveryDefaults(): Promise<StoreDeliveryDefaults> {
