@@ -7,6 +7,7 @@ import { Product } from "@/types";
 import { toast } from "sonner";
 import { SizeGuideModal } from "./SizeGuideModal";
 import { ProductReviews } from "./ProductReviews";
+import { ProductInfoAccordion } from "./ProductInfoAccordion";
 
 /**
  * ============================================================================
@@ -234,7 +235,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
           </div>
 
-          {/* The new ProductInfoAccordion is rendered below this component in page.tsx */}
+          <ProductInfoAccordion 
+            details={details || null} 
+            delivery={delivery || { deliveryTime: "", deliveryNoteHtml: "", returnsEligible: true, returnsNoteHtml: "" }} 
+            fallbackDescription={product.description}
+          />
 
         </div>
       </div>

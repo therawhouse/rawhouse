@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProductDetail } from "@/components/product/ProductDetail";
-import { ProductInfoAccordion } from "@/components/product/ProductInfoAccordion";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { WishlistDrawer } from "@/components/cart/WishlistDrawer";
 import { AuthModal } from "@/components/auth/AuthModal";
@@ -99,13 +98,6 @@ export default function ProductDetailPage() {
           onAddToWishlist={(p) => setWishlistItems([...wishlistItems, p])}
           onOpenAuth={() => setIsAuthOpen(true)}
         />
-        <div className="max-w-7xl mx-auto px-6 pb-12">
-          <ProductInfoAccordion 
-            details={productDetails} 
-            delivery={delivery || { deliveryTime: "", deliveryNoteHtml: "", returnsEligible: true, returnsNoteHtml: "" }} 
-            fallbackDescription={product.description}
-          />
-        </div>
       </main>
 
       <Footer />
