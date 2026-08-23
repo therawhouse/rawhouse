@@ -56,6 +56,7 @@ export const metadata: Metadata = {
 };
 
 import { CartProvider } from "@/lib/CartContext";
+import { WishlistProvider } from "@/lib/WishlistContext";
 
 export default function RootLayout({
   children,
@@ -88,7 +89,9 @@ export default function RootLayout({
       <body className="bg-raw-bg text-raw-ivory antialiased min-h-screen flex flex-col selection:bg-raw-gold selection:text-raw-bg">
         <NextAuthProvider>
           <CartProvider>
-            {children}
+            <WishlistProvider>
+              {children}
+            </WishlistProvider>
           </CartProvider>
         </NextAuthProvider>
         <Toaster

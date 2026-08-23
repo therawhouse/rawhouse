@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { X, ShoppingBag, CreditCard, ShieldCheck } from "lucide-react";
 import { useCart } from "@/lib/CartContext";
+import { useWishlist } from "@/lib/WishlistContext";
 
 /**
  * ============================================================================
@@ -25,9 +26,8 @@ import { useCart } from "@/lib/CartContext";
 
 export default function HomePage() {
   const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
+  const { wishlistItems, addToWishlist, removeFromWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist();
   const [products, setProducts] = useState<Product[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -42,17 +42,6 @@ export default function HomePage() {
       .catch((err) => console.error("Failed to fetch products:", err));
   }, []);
 
-  // Wishlist Operations
-  const handleAddToWishlist = (product: Product) => {
-    setWishlistItems((prev) => {
-      if (prev.some((p) => p.id === product.id)) return prev;
-      return [...prev, product];
-    });
-  };
-
-  const handleRemoveFromWishlist = (productId: string) => {
-    setWishlistItems((prev) => prev.filter((p) => p.id !== productId));
-  };
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -77,7 +66,7 @@ export default function HomePage() {
       <FeaturedProducts
         products={products.filter(p => p.isFeatured)}
         onAddToCart={addToCart}
-        onAddToWishlist={handleAddToWishlist}
+        onAddToWishlist={addToWishlist}
         onQuickView={(p) => setQuickViewProduct(p)}
       />
 
@@ -132,7 +121,7 @@ export default function HomePage() {
         isOpen={isWishlistOpen}
         onClose={() => setIsWishlistOpen(false)}
         items={wishlistItems}
-        onRemoveFromWishlist={handleRemoveFromWishlist}
+        onRemoveFromWishlist={removeFromWishlist}
         onAddToCart={addToCart}
       />
 

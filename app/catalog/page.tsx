@@ -11,6 +11,7 @@ import { Product, CartItem } from "@/types";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 import { useCart } from "@/lib/CartContext";
+import { useWishlist } from "@/lib/WishlistContext";
 
 /**
  * ============================================================================
@@ -26,9 +27,8 @@ function CatalogContent() {
   const initialQuery = searchParams.get("query") || "";
 
   const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
+  const { wishlistItems, addToWishlist, removeFromWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist();
   const [products, setProducts] = useState<Product[]>([]);
-  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
@@ -42,9 +42,6 @@ function CatalogContent() {
       .catch((err) => console.error("Failed to fetch products:", err));
   }, []);
 
-  const handleAddToWishlist = (product: Product) => {
-    setWishlistItems((prev) => [...prev, product]);
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-raw-bg text-raw-ivory">
@@ -62,7 +59,7 @@ function CatalogContent() {
           initialCategory={initialCategory}
           initialQuery={initialQuery}
           onAddToCart={addToCart}
-          onAddToWishlist={handleAddToWishlist}
+          onAddToWishlist={addToWishlist}
           onQuickView={() => {}}
         />
       </main>
@@ -81,7 +78,7 @@ function CatalogContent() {
         isOpen={isWishlistOpen}
         onClose={() => setIsWishlistOpen(false)}
         items={wishlistItems}
-        onRemoveFromWishlist={(id) => setWishlistItems(wishlistItems.filter((p) => p.id !== id))}
+        onRemoveFromWishlist={removeFromWishlist}
         onAddToCart={addToCart}
       />
 

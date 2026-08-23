@@ -11,6 +11,7 @@ import { AuthModal } from "@/components/auth/AuthModal";
 import { Product, CartItem } from "@/types";
 import { toast } from "sonner";
 import { useCart } from "@/lib/CartContext";
+import { useWishlist } from "@/lib/WishlistContext";
 
 /**
  * ============================================================================
@@ -31,8 +32,7 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const { cartItems, addToCart, updateQuantity, removeFromCart, isCartOpen, setIsCartOpen } = useCart();
-  const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const { wishlistItems, addToWishlist, removeFromWishlist, isWishlistOpen, setIsWishlistOpen } = useWishlist();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const handleRazorpayCheckout = (p: Product, size?: string, color?: string) => {
@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
           sizeGuide={sizeGuide}
           onAddToCart={addToCart}
           onRazorpayCheckout={handleRazorpayCheckout}
-          onAddToWishlist={(p) => setWishlistItems([...wishlistItems, p])}
+          onAddToWishlist={addToWishlist}
           onOpenAuth={() => setIsAuthOpen(true)}
         />
       </main>
@@ -114,7 +114,7 @@ export default function ProductDetailPage() {
         isOpen={isWishlistOpen}
         onClose={() => setIsWishlistOpen(false)}
         items={wishlistItems}
-        onRemoveFromWishlist={(id) => setWishlistItems(wishlistItems.filter((p) => p.id !== id))}
+        onRemoveFromWishlist={removeFromWishlist}
         onAddToCart={addToCart}
       />
 
