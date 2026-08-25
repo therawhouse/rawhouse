@@ -104,3 +104,17 @@ export function getWelcomeEmailHtml(customerName: string) {
   `;
   return wrapLuxuryEmailTemplate("Welcome to The Raw House", content);
 }
+
+export function getAdminNewOrderEmailHtml(orderNumber: string, customerName: string, customerEmail: string, totalAmount: number) {
+  const content = `
+    <h2>New Order Received: #${orderNumber}</h2>
+    <p>A new order has been placed on The Raw House.</p>
+    <p><strong>Customer Details:</strong><br/>
+    Name: ${customerName}<br/>
+    Email: ${customerEmail}</p>
+    <p><strong>Order Summary:</strong></p>
+    <p style="font-size: 18px; color: #c69255;">Total: ₹${totalAmount.toLocaleString('en-IN')}</p>
+    <a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin/orders" class="btn">View in Admin Dashboard</a>
+  `;
+  return wrapLuxuryEmailTemplate("New Order Received", content);
+}

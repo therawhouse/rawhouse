@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { sendEmail, getOrderConfirmationEmailHtml } from "@/lib/resend";
+import { sendEmail, getOrderConfirmationEmailHtml, getAdminNewOrderEmailHtml } from "@/lib/resend";
 import { logPaymentEvent, logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
@@ -131,6 +131,20 @@ export async function POST(request: NextRequest) {
         html: emailHtml,
       });
     }
+
+    // Send Admin Notification Email
+    const adminEmail = process.env.ADMIN_EMAIL || "support.therawhouse@gmail.com";
+    const adminHtml = getAdminNewOrderEmailHtml(
+      razorpayOrderId,
+      customerName || "Guest",
+      safeEmail,
+      totalAmount
+    );
+    await sendEmail({
+      to: adminEmail,
+      subject: `[New Order] #${razorpayOrderId} - ${customerName || "Guest"}`,
+      html: adminHtml,
+    });
 
     return NextResponse.json({
       success: true,
