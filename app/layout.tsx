@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { NextAuthProvider } from "@/components/auth/NextAuthProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 /**
  * ============================================================================
@@ -104,6 +105,7 @@ export default function RootLayout({
             },
           }}
         />
+        <Analytics />
       </body>
     </html>
   );
